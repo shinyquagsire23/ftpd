@@ -2,6 +2,8 @@
 // - RFC  959 (https://tools.ietf.org/html/rfc959)
 // - RFC 3659 (https://tools.ietf.org/html/rfc3659)
 // - suggested implementation details from https://cr.yp.to/ftp/filesystem.html
+// - Deflate transmission mode for FTP
+//   (https://tools.ietf.org/html/draft-preston-ftpext-deflate-04)
 //
 // Copyright (C) 2020 Michael Theall
 //
@@ -60,6 +62,9 @@ public:
 	/// \brief Get port
 	std::uint16_t port () const;
 
+	/// \brief Get deflate level
+	int deflateLevel () const;
+
 #ifdef _3DS
 	/// \brief Whether to get mtime
 	/// \note only effective on 3DS
@@ -92,6 +97,14 @@ public:
 	/// \brief Set listen port
 	/// \param port_ Listen port
 	bool setPort (std::uint16_t port_);
+
+	/// \brief Set deflate level
+	/// \param level_ Deflate level
+	bool setDeflateLevel (std::string const &level_);
+
+	/// \brief Set deflate level
+	/// \param level_ Deflate level
+	bool setDeflateLevel (int level_);
 
 #ifdef _3DS
 	/// \brief Set whether to get mtime
@@ -129,6 +142,9 @@ private:
 
 	/// \brief Listen port
 	std::uint16_t m_port;
+
+	/// \brief Deflate level
+	int m_deflateLevel;
 
 #ifdef _3DS
 	/// \brief Whether to get mtime

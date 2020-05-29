@@ -7,6 +7,7 @@ FTP Server for 3DS/Switch/Linux.
 - Appears to work well with a variety of clients.
 - Supports multiple simultaneous clients. The 3DS itself only appears to support enough sockets to perform 4-5 simultaneous data transfers, so it will help if you limit your FTP client to this many parallel requests.
 - Cutting-edge [graphics](#dear-imgui).
+- MODE Z
 
 - Exit on NDS/3DS with START button
 - Exit on Switch with PLUS button
@@ -129,7 +130,7 @@ Build `switch/ftpd.nro`:
 - MKD
 - MLSD
 - MLST
-- MODE (no-op)
+- MODE
 - NLST
 - NOOP
 - OPTS
@@ -163,11 +164,14 @@ Build `switch/ftpd.nro`:
 
 ## SITE commands
 
-- Show help:    SITE HELP
-- Set username: SITE USER <NAME>
-- Set password: SITE PASS <PASS>
-- Set port:     SITE PORT <PORT>
-- Set getMTime*: SITE MTIME [0|1]
-- Save config:  SITE SAVE
+| Command            |                  |
+|--------------------|------------------|
+| SITE HELP          | Show help        |
+| SITE USER <NAME>   | Set username     |
+| SITE PASS <PASS>   | Set password     |
+| SITE PORT <PORT>   | Set port         |
+| SITE DEFLATE [0-9] | Set deflate level|
+| SITE MTIME [0\|1]  | Set getMTime*    |
+| SITE SAVE          | Save config      |
 
 *getMTime only on 3DS. Enabling will give timestamps at the expense of slow listings.
