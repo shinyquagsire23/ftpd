@@ -2398,6 +2398,59 @@ void FtpSession::OPTS (char const *args_)
 		return;
 	}
 
+	if (::strncasecmp (args_, "MODE Z ", 7) == 0)
+	{
+		auto p = args_ + 7;
+
+		auto const nextWord = [] (char const *&p_) {
+			while (*p_ && std::isspace (*p_))
+				++p_;
+
+			auto const start = p_;
+			while (*p_ && !std::isspace (*p_))
+				++p_;
+
+			auto const end = p_;
+
+			return std::string_view (start, end - start);
+		};
+
+		int level = -1;
+		while (*p)
+		{
+			auto const opt = nextWord (p);
+			if (opt.empty ())
+				break;
+
+			if (opt.size () == 5 && ::strncasecmp (opt.data (), "LEVEL", 5) == 0)
+			{
+				auto const val = nextWord (p);
+				if (val.size () != 1 || !std::isdigit (val[0]))
+				{
+					sendResponse ("501 %s\r\n", std::strerror (EINVAL));
+					return;
+				}
+
+				level = val[0] - '0';
+				m_config.setDeflateLevel (level);
+			}
+			else
+			{
+				sendResponse ("501 %s\r\n", std::strerror (EINVAL));
+				return;
+			}
+		}
+
+		if (level < 0)
+		{
+			sendResponse ("501 %s\r\n", std::strerror (EINVAL));
+			return;
+		}
+
+		sendResponse ("200 MODE Z LEVEL set to %u\r\n", level);
+		return;
+	}
+
 	sendResponse ("504 %s\r\n", std::strerror (EINVAL));
 }
 
