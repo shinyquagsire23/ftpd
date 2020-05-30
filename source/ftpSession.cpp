@@ -2840,6 +2840,7 @@ void FtpSession::SITE (char const *args_)
 		              " Set username: SITE USER <NAME>\r\n"
 		              " Set password: SITE PASS <PASS>\r\n"
 		              " Set port: SITE PORT <PORT>\r\n"
+		              " Set deflate level: SITE DEFLATE <LEVEL>\r\n"
 #ifdef _3DS
 		              " Set getMTime: SITE MTIME [0|1]\r\n"
 #endif
