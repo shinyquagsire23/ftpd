@@ -65,7 +65,7 @@ private:
 	constexpr static auto RESPONSE_BUFFERSIZE = 4096;
 
 	/// \brief Transfer buffersize
-	constexpr static auto XFER_BUFFERSIZE = 8192;
+	constexpr static auto XFER_BUFFERSIZE = 4096;
 #else
 	/// \brief Response buffer size
 	constexpr static auto RESPONSE_BUFFERSIZE = 32768;
@@ -75,7 +75,7 @@ private:
 #endif
 
 	/// \brief File buffersize
-	constexpr static auto FILE_BUFFERSIZE = 4 * XFER_BUFFERSIZE;
+	constexpr static auto FILE_BUFFERSIZE = XFER_BUFFERSIZE;
 
 #if defined(NDS)
 	/// \brief Socket buffer size

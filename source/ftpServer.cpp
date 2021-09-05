@@ -29,7 +29,7 @@
 #include "imgui.h"
 
 #ifdef NDS
-#include <dswifi9.h>
+#include <dsiwifi9.h>
 #endif
 
 #include <arpa/inet.h>
@@ -103,22 +103,26 @@ void FtpServer::draw ()
 		if (m_socket)
 			std::sprintf (port, ":%u", m_socket->sockName ().port ());
 
+        static int idk = 0;
+        consoleSelect (&g_logConsole);
+        //std::printf ("asdf %x\r", idk++);
+
 		consoleSelect (&g_statusConsole);
-		std::printf ("\x1b[0;0H\x1b[32;1m%s \x1b[36;1m%s%s",
+		/*std::printf ("\x1b[0;0H\x1b[32;1m%s \x1b[36;1m%s%s",
 		    STATUS_STRING,
 		    m_socket ? m_socket->sockName ().name () : "Waiting on WiFi",
-		    m_socket ? port : "");
+		    m_socket ? port : "");*/
 
 #ifndef NDS
 		char timeBuffer[16];
 		auto const now = std::time (nullptr);
 		std::strftime (timeBuffer, sizeof (timeBuffer), "%H:%M:%S", std::localtime (&now));
 
-		std::printf (" \x1b[37;1m%s", timeBuffer);
+		//std::printf (" \x1b[37;1m%s", timeBuffer);
 #endif
 
-		std::fputs ("\x1b[K", stdout);
-		std::fflush (stdout);
+		//std::fputs ("\x1b[K", stdout);
+		//std::fflush (stdout);
 	}
 
 	{
@@ -139,6 +143,7 @@ void FtpServer::draw ()
 #ifndef NDS
 		auto const lock = std::lock_guard (m_lock);
 #endif
+#if 0
 		consoleSelect (&g_sessionConsole);
 		std::fputs ("\x1b[2J", stdout);
 		for (auto &session : m_sessions)
@@ -148,6 +153,7 @@ void FtpServer::draw ()
 				std::fputc ('\n', stdout);
 		}
 		std::fflush (stdout);
+#endif
 	}
 
 	drawLog ();

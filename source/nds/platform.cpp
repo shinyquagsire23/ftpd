@@ -22,7 +22,7 @@
 
 #include "log.h"
 
-#include <dswifi9.h>
+#include <dsiwifi9.h>
 #include <fat.h>
 
 #include <netinet/in.h>
@@ -47,14 +47,29 @@ bool s_backBuffer = false;
 bool s_backlight = true;
 }
 
+extern "C"
+{
+
+void appwifi_log(const char* s)
+{
+    consoleSelect (&g_logConsole);
+
+	//std::fputs ("\x1b[K", stdout);
+
+    info(s);
+    //std::fflush (stdout);
+}
+
+}
+
 bool platform::networkVisible ()
 {
-	switch (Wifi_AssocStatus ())
+	switch (DSiWifi_AssocStatus ())
 	{
 	case ASSOCSTATUS_DISCONNECTED:
 	case ASSOCSTATUS_CANNOTCONNECT:
 		s_addr.s_addr = 0;
-		Wifi_AutoConnect ();
+		DSiWifi_AutoConnect ();
 		break;
 
 	case ASSOCSTATUS_SEARCHING:
@@ -66,7 +81,7 @@ bool platform::networkVisible ()
 
 	case ASSOCSTATUS_ASSOCIATED:
 		if (!s_addr.s_addr)
-			s_addr = Wifi_GetIPInfo (nullptr, nullptr, nullptr, nullptr);
+			s_addr = DSiWifi_GetIPInfo (nullptr, nullptr, nullptr, nullptr);
 		return true;
 	}
 
@@ -77,7 +92,7 @@ bool platform::networkAddress (SockAddr &addr_)
 {
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
-	addr.sin_addr   = Wifi_GetIPInfo (nullptr, nullptr, nullptr, nullptr);
+	addr.sin_addr   = DSiWifi_GetIPInfo (nullptr, nullptr, nullptr, nullptr);
 
 	addr_ = addr;
 	return true;
@@ -101,8 +116,10 @@ bool platform::init ()
 	vramSetBankC (VRAM_C_SUB_BG);
 
 	consoleInit (&g_statusConsole, 0, BgType_Text4bpp, BgSize_T_256x256, 4, 0, true, true);
+	//consoleInit (&g_logConsole, 0, BgType_Text4bpp, BgSize_T_256x256, 4, 0, false, true);
 	g_logConsole = g_statusConsole;
 	consoleInit (&g_sessionConsole, 0, BgType_Text4bpp, BgSize_T_256x256, 4, 0, false, true);
+	//g_statusConsole = g_sessionConsole;
 
 	consoleSetWindow (&g_statusConsole, 0, 0, 32, 1);
 	consoleSetWindow (&g_logConsole, 0, 1, 32, 23);
@@ -111,8 +128,13 @@ bool platform::init ()
 	consoleDebugInit (DebugDevice_NOCASH);
 	std::setvbuf (stderr, nullptr, _IONBF, 0);
 
-	Wifi_InitDefault (INIT_ONLY);
-	Wifi_AutoConnect ();
+    consoleSelect (&g_logConsole);
+
+    DSiWifi_SetLogHandler(appwifi_log);
+	DSiWifi_InitDefault (INIT_ONLY);
+	DSiWifi_AutoConnect ();
+	
+	consoleSelect (&g_logConsole);
 
 	return true;
 }

@@ -40,13 +40,8 @@ Socket::~Socket ()
 	if (m_connected)
 		info ("Closing connection to [%s]:%u\n", m_peerName.name (), m_peerName.port ());
 
-#ifdef NDS
-	if (::closesocket (m_fd) != 0)
-		error ("closesocket: %s\n", std::strerror (errno));
-#else
 	if (::close (m_fd) != 0)
 		error ("close: %s\n", std::strerror (errno));
-#endif
 }
 
 Socket::Socket (int const fd_) : m_fd (fd_), m_listening (false), m_connected (false)
@@ -180,10 +175,6 @@ bool Socket::shutdown (int const how_)
 
 bool Socket::setLinger (bool const enable_, std::chrono::seconds const time_)
 {
-#ifdef NDS
-	errno = ENOSYS;
-	return -1;
-#else
 	struct linger linger;
 	linger.l_onoff  = enable_;
 	linger.l_linger = time_.count ();
@@ -199,7 +190,6 @@ bool Socket::setLinger (bool const enable_, std::chrono::seconds const time_)
 	}
 
 	return true;
-#endif
 }
 
 bool Socket::setNonBlocking (bool const nonBlocking_)
@@ -262,6 +252,9 @@ bool Socket::setRecvBufferSize (std::size_t const size_)
 
 bool Socket::setSendBufferSize (std::size_t const size_)
 {
+#ifdef NDS
+    return true;
+#else
 	int const size = size_;
 	if (::setsockopt (m_fd, SOL_SOCKET, SO_SNDBUF, &size, sizeof (size)) != 0)
 	{
@@ -270,6 +263,7 @@ bool Socket::setSendBufferSize (std::size_t const size_)
 	}
 
 	return true;
+#endif
 }
 
 std::make_signed_t<std::size_t>
@@ -304,6 +298,8 @@ std::make_signed_t<std::size_t> Socket::write (void const *const buffer_, std::s
 	auto const rc = ::send (m_fd, buffer_, size_, 0);
 	if (rc < 0 && errno != EWOULDBLOCK)
 		error ("send: %s\n", std::strerror (errno));
+
+    //error ("write ret(%d)\n", rc);
 
 	return rc;
 }
@@ -368,61 +364,3 @@ int Socket::poll (PollInfo *const info_,
 
 	return rc;
 }
-
-#ifdef NDS
-extern "C" int poll (struct pollfd *const fds_, nfds_t const nfds_, int const timeout_)
-{
-	fd_set readFds;
-	fd_set writeFds;
-	fd_set exceptFds;
-
-	FD_ZERO (&readFds);
-	FD_ZERO (&writeFds);
-	FD_ZERO (&exceptFds);
-
-	for (nfds_t i = 0; i < nfds_; ++i)
-	{
-		if (fds_[i].events & POLLIN)
-			FD_SET (fds_[i].fd, &readFds);
-		if (fds_[i].events & POLLOUT)
-			FD_SET (fds_[i].fd, &writeFds);
-	}
-
-	struct timeval tv;
-	tv.tv_sec     = timeout_ / 1000;
-	tv.tv_usec    = (timeout_ % 1000) * 1000;
-	auto const rc = ::select (nfds_, &readFds, &writeFds, &exceptFds, &tv);
-	if (rc < 0)
-		return rc;
-
-	int count = 0;
-	for (nfds_t i = 0; i < nfds_; ++i)
-	{
-		bool counted    = false;
-		fds_[i].revents = 0;
-
-		if (FD_ISSET (fds_[i].fd, &readFds))
-		{
-			counted = true;
-			fds_[i].revents |= POLLIN;
-		}
-
-		if (FD_ISSET (fds_[i].fd, &writeFds))
-		{
-			counted = true;
-			fds_[i].revents |= POLLOUT;
-		}
-
-		if (FD_ISSET (fds_[i].fd, &exceptFds))
-		{
-			counted = true;
-			fds_[i].revents |= POLLERR;
-		}
-
-		if (counted)
-			++count;
-	}
-
-	return count;
-}
-#endif
